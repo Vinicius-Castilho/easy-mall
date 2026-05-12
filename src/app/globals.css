@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Cores extraídas do Manual de Identidade Visual */
+  --color-easy-green: #004241;    /* PANTONE 3302 C */
+  --color-easy-olive: #baba2e;    /* PANTONE 7765 C */
+  --color-easy-blue: #3d539c;     /* PANTONE 7684 C */
+  --color-easy-lavender: #b9add3; /* PANTONE 270 C */
+  --color-easy-cream: #faf3e2;    /* PANTONE 9081 C */
+  --color-easy-black: #1d1d1d;    /* PANTONE BLACK */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Fontes sugeridas para o projeto */
+  --font-heading: "Montserrat", sans-serif;
+  --font-body: "Inter", sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Definição da animação (Prefixar com --animate para o Tailwind v4 gerar a classe) */
+  --animate-marquee: marquee 40s linear infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* --- CLASSES CUSTOMIZADAS (Ficam fora do @theme) --- */
+
+/* Força a pausa tanto no mouse quanto no toque pressionado */
+.pause-marquee:hover, 
+.pause-marquee:active {
+  animation-play-state: paused !important;
+}
+
+/* Reset e Estilos de Base */
+@layer base {
+  body {
+    @apply bg-easy-cream text-easy-green antialiased;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    @apply font-bold;
+  }
 }
