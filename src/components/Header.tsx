@@ -4,6 +4,13 @@ import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 
+const NAV_LINKS = [
+  { href: "/sobre", label: "O Easy Mall" },
+  { href: "/lojas", label: "Lojas" },
+  { href: "/#localizacao", label: "Como chegar" },
+  { href: "/#contato", label: "Lojista" },
+];
+
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false); // Estado para o menu mobile
@@ -14,7 +21,7 @@ export default function Header() {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); 
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -43,30 +50,32 @@ export default function Header() {
 
         {/* --- MENU DESKTOP --- */}
         {/* Usamos lg:flex para só aparecer acima de 1024px */}
-        <nav className="hidden lg:flex gap-10 items-center text-sm font-medium uppercase tracking-tight text-easy-green">
-          <Link href="/sobre" className="hover:text-easy-olive transition-colors">O Easy Mall</Link>
-          <Link href="/lojas" className="hover:text-easy-olive transition-colors">Lojas</Link>
-          <Link href="/#localizacao" className="hover:text-easy-olive transition-colors">Como chegar</Link>
-          <Link href="/#contato" className="hover:text-easy-olive transition-colors">Lojista</Link>
-          <Link href="/contato" className="bg-easy-green text-easy-cream px-8 py-3 rounded-full hover:bg-easy-olive hover:text-easy-green transition-all shadow-md">
-            Fale Conosco
+        <nav className="hidden lg:flex gap-10 items-center text-sm font-medium uppercase tracking-normal text-easy-green">
+          {NAV_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className="hover:text-easy-olive transition-colors">
+              {link.label}
+            </Link>
+          ))}
+          <Link href="/contato" className="font-semibold bg-easy-green text-easy-cream px-8 py-3 rounded-full hover:bg-easy-olive hover:text-easy-green transition-all shadow-md">
+            Contato
           </Link>
         </nav>
 
         {/* --- BOTÃO MOBILE (HAMBÚRGUER) --- */}
-        <button 
+        <button
           className="lg:hidden text-easy-green p-2 focus:outline-none"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Abrir menu"
+          aria-expanded={menuOpen}
         >
           {menuOpen ? (
             // Ícone X (Fechar)
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
             // Ícone Hambúrguer (Abrir)
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           )}
@@ -76,19 +85,17 @@ export default function Header() {
       {/* --- MENU MOBILE ABERTO --- */}
       {menuOpen && (
         <div className="lg:hidden absolute top-full left-0 w-full bg-easy-cream/95 backdrop-blur-md shadow-xl border-b border-easy-green/10 flex flex-col px-6 py-8 gap-6 text-center transition-all">
-          <Link href="/sobre" onClick={() => setMenuOpen(false)} className="text-lg font-bold text-easy-green uppercase tracking-wide hover:text-easy-olive">
-            O Easy Mall
-          </Link>
-          <Link href="/lojas" onClick={() => setMenuOpen(false)} className="text-lg font-bold text-easy-green uppercase tracking-wide hover:text-easy-olive">
-            Lojas
-          </Link>
-          <Link href="/#localizacao" onClick={() => setMenuOpen(false)} className="text-lg font-bold text-easy-green uppercase tracking-wide hover:text-easy-olive">
-            Como chegar
-          </Link>
-          <Link href="/#contato" onClick={() => setMenuOpen(false)} className="text-lg font-bold text-easy-green uppercase tracking-wide hover:text-easy-olive">
-            Lojista
-          </Link>
-          <Link href="/contato" onClick={() => setMenuOpen(false)} className="bg-easy-green text-easy-cream px-8 py-4 mt-4 rounded-full font-bold hover:bg-easy-olive hover:text-easy-green transition-all shadow-md mx-auto w-full max-w-sm">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="text-lg font-medium text-easy-green uppercase tracking-normal hover:text-easy-olive"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link href="/contato" onClick={() => setMenuOpen(false)} className="bg-easy-green text-easy-cream px-8 py-4 mt-4 rounded-full font-semibold hover:bg-easy-olive hover:text-easy-green transition-all shadow-md mx-auto w-full max-w-sm">
             Fale Conosco
           </Link>
         </div>

@@ -23,7 +23,7 @@ export default function Footer() {
           </Link>
 
           {/* Navegação Rápida */}
-          <nav className="flex flex-wrap justify-center gap-6 md:gap-10 text-sm font-bold uppercase tracking-widest text-easy-cream/70">
+          <nav className="flex flex-wrap justify-center gap-6 md:gap-10 text-sm font-medium uppercase tracking-normal text-easy-cream/70">
             <Link href="/sobre" className="hover:text-easy-olive hover:text-easy-cream transition-colors">O Easy Mall</Link>
             <Link href="/lojas" className="hover:text-easy-olive hover:text-easy-cream transition-colors">Lojas</Link>
             <Link href="/#localizacao" className="hover:text-easy-olive hover:text-easy-cream transition-colors">Como chegar</Link>
@@ -38,7 +38,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-easy-cream/50">
           <p>© {currentYear} Easy Mall. Todos os direitos reservados.</p>
           <p>
-            Uma realização <span className="font-bold text-easy-cream/80">Torre Participações</span>
+            Uma realização <span className="font-semibold text-easy-cream/80">Torre Participações</span>
           </p>
         </div>
 

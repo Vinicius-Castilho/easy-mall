@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageTransition from "@/components/PageTransition";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-br"
-      className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth scroll-pt-28`}
+      className={`${inter.variable} ${montserrat.variable} h-full scroll-smooth scroll-pt-28`}
     >
       <body className="min-h-screen">
         
@@ -36,7 +39,7 @@ export default function RootLayout({
 
         {/* CONTEÚDO */}
         <main>
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
 
         {/* FOOTER GLOBAL */}

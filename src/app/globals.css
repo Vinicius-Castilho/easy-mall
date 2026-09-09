@@ -8,10 +8,11 @@
   --color-easy-lavender: #b9add3; /* PANTONE 270 C */
   --color-easy-cream: #faf3e2;    /* PANTONE 9081 C */
   --color-easy-black: #1d1d1d;    /* PANTONE BLACK */
+  --color-easy-torre: #0243d4;    /* PANTONE BLACK */
 
   /* Fontes sugeridas para o projeto */
-  --font-heading: "Montserrat", sans-serif;
-  --font-body: "Inter", sans-serif;
+  --font-heading: var(--font-montserrat), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
 
   /* Definição da animação (Prefixar com --animate para o Tailwind v4 gerar a classe) */
   --animate-marquee: marquee 40s linear infinite;
@@ -25,9 +26,15 @@
 /* --- CLASSES CUSTOMIZADAS (Ficam fora do @theme) --- */
 
 /* Força a pausa tanto no mouse quanto no toque pressionado */
-.pause-marquee:hover, 
+.pause-marquee:hover,
 .pause-marquee:active {
   animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
 }
 
 /* Reset e Estilos de Base */
@@ -35,10 +42,20 @@
   body {
     @apply bg-easy-cream text-easy-green antialiased;
     font-family: var(--font-body);
+    font-weight: 400;
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4 {
     font-family: var(--font-heading);
-    @apply font-bold;
+    @apply font-semibold tracking-normal;
+  }
+
+  strong {
+    @apply font-semibold;
+  }
+
+  button, input, textarea, select {
+    font: inherit;
   }
 }
