@@ -12,8 +12,6 @@ export default function Location() {
   const lat = "-8.040432";
   const lng = "-34.908714";
   
-  // O endereço por extenso para exibição visual
-  const address = "Rua José Bonifácio, 1210 Torre Recife, PE, 50710-000";
 
   // Links de GPS usando as coordenadas exatas (bulletproof)
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
@@ -49,7 +47,8 @@ export default function Location() {
                 <h4 className="text-xl font-semibold text-easy-green">Endereço</h4>
               </div>
               <p className="text-easy-green/70 leading-relaxed mb-5">
-                {address}
+                Rua José Bonifácio, 1210 – Torre<br />
+                Recife, PE <span className="whitespace-nowrap">– CEP 50710-000</span>
               </p>
               
               <div className="flex flex-col gap-4">

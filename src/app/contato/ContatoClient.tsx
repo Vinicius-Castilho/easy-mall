@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
+import AuroraBackground from "@/components/AuroraBackground";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import FinalCtaGrid from "@/components/FinalCtaGrid";
 import { WHATSAPP_HREF } from "@/lib/constants";
@@ -27,11 +28,7 @@ export default function ContatoClient() {
   return (
     <main className="relative pt-24 lg:pt-28 pb-20 bg-easy-cream min-h-screen overflow-hidden font-sans">
 
-      {/* BACKGROUND SUTIL */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-40">
-        <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-easy-olive/10 rounded-full blur-[100px] transform translate-x-1/4 -translate-y-1/4" />
-        <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-easy-green/5 rounded-full blur-[120px] transform -translate-x-1/4 translate-y-1/4" />
-      </div>
+      <AuroraBackground />
 
       <div className="relative z-10">
 

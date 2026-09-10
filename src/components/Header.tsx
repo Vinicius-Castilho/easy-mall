@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { href: "/sobre", label: "O Easy Mall" },
@@ -12,8 +13,18 @@ const NAV_LINKS = [
 ];
 
 export default function Header() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false); // Estado para o menu mobile
+
+  // Na home, o logo só rola para o topo; nas demais páginas, navega para a home
+  const handleLogoClick = (e: React.MouseEvent) => {
+    setMenuOpen(false);
+    if (pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,7 +48,7 @@ export default function Header() {
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" onClick={() => setMenuOpen(false)}>
+        <Link href="/" onClick={handleLogoClick}>
           <Image
             src="/images/marca-easy-mall.svg"
             alt="Easy Mall"
