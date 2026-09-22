@@ -2,25 +2,87 @@
 
 import { useState } from 'react';
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
+import emailjs from "@emailjs/browser";
 import AuroraBackground from "@/components/AuroraBackground";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import FinalCtaGrid from "@/components/FinalCtaGrid";
-import { WHATSAPP_HREF } from "@/lib/constants";
+import { EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, WHATSAPP_HREF, WHATSAPP_HREF_LMS } from "@/lib/constants";
 import { fadeUp, revealOnScroll, scaleIn, staggerContainer } from "@/lib/motion";
 
 export default function ContatoClient() {
   // Estados do formulário prontos para sua API
   const [motivo, setMotivo] = useState("");
   const [termoUso, setTermoUso] = useState(false);
-  const [aceitaMarketing, setAceitaMarketing] = useState(false);
   const [enviado, setEnviado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState(false);
+  const [camposFaltando, setCamposFaltando] = useState<string[]>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Aqui entra o fetch para a sua rota de backend/API
-    console.log("Enviando...", { motivo, termoUso, aceitaMarketing });
-    setEnviado(true);
+    setErro(false);
+
+    const dados = new FormData(e.currentTarget);
+    const nome = String(dados.get("nome") ?? "").trim();
+    const telefone = String(dados.get("telefone") ?? "").trim();
+    const email = String(dados.get("email") ?? "").trim();
+    const mensagem = String(dados.get("mensagem") ?? "").trim();
+
+    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    const faltando: string[] = [];
+    if (!motivo) faltando.push("Motivo do Contato");
+    if (!nome) faltando.push("Nome");
+    if (!telefone) faltando.push("WhatsApp");
+    if (!email) faltando.push("E-mail");
+    else if (!emailValido) faltando.push("E-mail (formato inválido)");
+    if (!mensagem) faltando.push("Mensagem");
+    if (!termoUso) faltando.push("Aceite dos Termos de Uso e Política de Privacidade");
+
+    if (faltando.length > 0) {
+      setCamposFaltando(faltando);
+      return;
+    }
+
+    // Template compartilhado com outro site só tem {{name}}, {{email}}, {{title}},
+    // {{time}} e {{message}} — por isso empacotamos telefone/motivo/consentimento
+    // dentro de "message" para não perder nenhuma informação da tela.
+    const corpo = [
+      `WhatsApp: ${telefone}`,
+      `Motivo: ${motivo || "Não informado"}`,
+      "",
+      mensagem,
+    ].join("\n");
+
+    setEnviando(true);
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          name: nome,
+          email,
+          title: motivo || "Contato pelo site",
+          time: new Date().toLocaleString("pt-BR", { timeZone: "America/Recife" }),
+          message: corpo,
+        },
+        { publicKey: EMAILJS_PUBLIC_KEY }
+      );
+      setEnviado(true);
+    } catch (err) {
+      const detalhe =
+        err instanceof Error
+          ? err.message
+          : typeof err === "object" && err !== null && "text" in err
+            ? `${(err as { status?: number }).status ?? ""} ${(err as { text?: string }).text ?? ""}`.trim()
+            : String(err);
+      console.error("Falha ao enviar e-mail via EmailJS:", detalhe);
+      setErro(true);
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const motivos = ["Comercial", "Dúvida", "Elogio", "Sugestão", "Reclamação"];
@@ -119,9 +181,10 @@ export default function ContatoClient() {
             animate="show"
             variants={scaleIn}
             transition={{ delay: 0.25 }}
-            className="order-1 lg:order-2 w-full max-w-md mx-auto lg:max-w-lg xl:max-w-xl"
+            className="order-1 lg:order-2 relative w-full max-w-md mx-auto lg:max-w-lg xl:max-w-xl"
           >
-            <div className="relative aspect-video lg:aspect-[4/3] w-full rounded-3xl overflow-hidden shadow-2xl shadow-easy-green/20">
+            <div className="absolute -inset-3 bg-easy-olive/12 rounded-[3rem] rotate-2 z-0" />
+            <div className="relative aspect-video lg:aspect-[4/3] w-full rounded-3xl overflow-hidden shadow-2xl shadow-easy-green/20 z-10">
               <Image
                 src="/images/Easy Mall.jpg"
                 alt="Visão do Easy Mall"
@@ -175,12 +238,15 @@ export default function ContatoClient() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               onSubmit={handleSubmit}
+              noValidate
               className="space-y-6"
             >
 
               {/* Motivo do Contato (Pills para melhor UX) */}
               <div className="space-y-3">
-                <label className="block text-sm font-semibold text-easy-green/70 uppercase tracking-normal">Motivo do Contato</label>
+                <label className="block text-sm font-semibold text-easy-green/70 uppercase tracking-normal">
+                  Motivo do Contato <span className="text-easy-olive">*</span>
+                </label>
                 <div className="flex flex-wrap gap-3">
                   {motivos.map((op) => (
                     <button
@@ -203,52 +269,75 @@ export default function ContatoClient() {
               {/* Inputs Padrão */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label htmlFor="nome" className="block text-sm font-semibold text-easy-green/70">Nome</label>
-                  <input type="text" id="nome" required className="w-full bg-easy-cream/50 border-2 border-easy-green/10 rounded-2xl px-5 py-4 focus:border-easy-olive focus:outline-none transition-colors text-easy-green" placeholder="Seu nome completo" />
+                  <label htmlFor="nome" className="block text-sm font-semibold text-easy-green/70">Nome <span className="text-easy-olive">*</span></label>
+                  <input type="text" id="nome" name="nome" required className="w-full bg-easy-cream/50 border-2 border-easy-green/10 rounded-2xl px-5 py-4 focus:border-easy-olive focus:outline-none transition-colors text-easy-green" placeholder="Seu nome completo" />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="telefone" className="block text-sm font-semibold text-easy-green/70">WhatsApp</label>
-                  <input type="tel" id="telefone" required className="w-full bg-easy-cream/50 border-2 border-easy-green/10 rounded-2xl px-5 py-4 focus:border-easy-olive focus:outline-none transition-colors text-easy-green" placeholder="(81) 90000-0000" />
+                  <label htmlFor="telefone" className="block text-sm font-semibold text-easy-green/70">WhatsApp <span className="text-easy-olive">*</span></label>
+                  <input type="tel" id="telefone" name="telefone" required className="w-full bg-easy-cream/50 border-2 border-easy-green/10 rounded-2xl px-5 py-4 focus:border-easy-olive focus:outline-none transition-colors text-easy-green" placeholder="(81) 90000-0000" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-semibold text-easy-green/70">E-mail</label>
-                <input type="email" id="email" required className="w-full bg-easy-cream/50 border-2 border-easy-green/10 rounded-2xl px-5 py-4 focus:border-easy-olive focus:outline-none transition-colors text-easy-green" placeholder="seu@email.com" />
+                <label htmlFor="email" className="block text-sm font-semibold text-easy-green/70">E-mail <span className="text-easy-olive">*</span></label>
+                <input type="email" id="email" name="email" required className="w-full bg-easy-cream/50 border-2 border-easy-green/10 rounded-2xl px-5 py-4 focus:border-easy-olive focus:outline-none transition-colors text-easy-green" placeholder="seu@email.com" />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="mensagem" className="block text-sm font-semibold text-easy-green/70">Mensagem</label>
-                <textarea id="mensagem" rows={4} required className="w-full bg-easy-cream/50 border-2 border-easy-green/10 rounded-2xl px-5 py-4 focus:border-easy-olive focus:outline-none transition-colors text-easy-green resize-none" placeholder="Como podemos ajudar?"></textarea>
+                <label htmlFor="mensagem" className="block text-sm font-semibold text-easy-green/70">Mensagem <span className="text-easy-olive">*</span></label>
+                <textarea id="mensagem" name="mensagem" rows={4} required className="w-full bg-easy-cream/50 border-2 border-easy-green/10 rounded-2xl px-5 py-4 focus:border-easy-olive focus:outline-none transition-colors text-easy-green resize-none" placeholder="Como podemos ajudar?"></textarea>
               </div>
 
               {/* Checkboxes de Privacidade */}
               <div className="space-y-4 pt-4">
                 <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="relative flex items-center justify-center mt-1">
+                  <div className="relative flex items-center justify-center mt-0.5 shrink-0">
                     <input type="checkbox" checked={termoUso} onChange={(e) => setTermoUso(e.target.checked)} required className="peer sr-only" />
                     <div className="w-5 h-5 border-2 border-easy-green/30 rounded focus:ring-2 focus:ring-easy-olive peer-checked:bg-easy-green peer-checked:border-easy-green transition-all"></div>
                     <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   </div>
                   <span className="text-sm text-easy-green/80 group-hover:text-easy-green transition-colors">
-                    Li e concordo com os Termos de Uso e a Política de Privacidade do Easy Mall.
-                  </span>
-                </label>
-
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="relative flex items-center justify-center mt-1">
-                    <input type="checkbox" checked={aceitaMarketing} onChange={(e) => setAceitaMarketing(e.target.checked)} className="peer sr-only" />
-                    <div className="w-5 h-5 border-2 border-easy-green/30 rounded focus:ring-2 focus:ring-easy-olive peer-checked:bg-easy-green peer-checked:border-easy-green transition-all"></div>
-                    <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                  </div>
-                  <span className="text-sm text-easy-green/80 group-hover:text-easy-green transition-colors">
-                    Autorizo o Easy Mall a enviar novidades, ofertas e comunicações por e-mail e WhatsApp.
+                    Li e concordo com os{" "}
+                    <Link
+                      href="/termos-de-uso"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="underline decoration-easy-green/30 underline-offset-2 hover:text-easy-olive transition-colors"
+                    >
+                      Termos de Uso
+                    </Link>{" "}
+                    e a{" "}
+                    <Link
+                      href="/politica-de-privacidade"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="underline decoration-easy-green/30 underline-offset-2 hover:text-easy-olive transition-colors"
+                    >
+                      Política de Privacidade
+                    </Link>{" "}
+                    do Easy Mall. <span className="text-easy-olive">*</span>
                   </span>
                 </label>
               </div>
 
-              <button type="submit" className="w-full sm:w-auto bg-easy-green text-white font-semibold px-10 py-4 rounded-xl shadow-lg hover:bg-easy-olive hover:shadow-xl transition-all active:scale-95 mt-6">
-                Enviar Mensagem
+              <p className="text-xs text-easy-green/50">
+                <span className="text-easy-olive">*</span> Campos obrigatórios
+              </p>
+
+              {erro && (
+                <p className="text-sm font-medium text-red-600 -mb-2">
+                  Não foi possível enviar sua mensagem agora. Tente novamente ou fale com a gente pelo WhatsApp.
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={enviando}
+                className="w-full sm:w-auto bg-easy-green text-white font-semibold px-10 py-4 rounded-xl shadow-lg hover:bg-easy-olive hover:shadow-xl transition-all active:scale-95 mt-6 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+              >
+                {enviando ? "Enviando..." : "Enviar Mensagem"}
               </button>
             </motion.form>
             )}
@@ -262,11 +351,59 @@ export default function ContatoClient() {
             { variant: "outline", href: "/sobre", label: "O Easy Mall" },
             { variant: "solid", href: "/lojas", title: "Conheça", subtitle: "nossas lojas." },
             { variant: "outline", href: "/#localizacao", label: "Como chegar" },
-            { variant: "olive", href: WHATSAPP_HREF, title: "Comercialização", subtitle: "Fale com a LMS" },
+            { variant: "olive", href: WHATSAPP_HREF_LMS, title: "Comercialização", subtitle: "Fale com a LMS" },
           ]}
         />
 
       </div>
+
+      {/* Popup de validação: campos obrigatórios não preenchidos */}
+      <AnimatePresence>
+        {camposFaltando.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setCamposFaltando([])}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-easy-green/40 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+              transition={{ duration: 0.25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center"
+            >
+              <span className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 text-red-600 mx-auto mb-5">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 9v4" />
+                  <path d="M12 17h.01" />
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                </svg>
+              </span>
+              <h3 className="text-xl font-semibold text-easy-green mb-2">Faltam alguns campos</h3>
+              <p className="text-easy-green/70 mb-5">Preencha as informações abaixo antes de enviar:</p>
+              <ul className="text-left text-sm text-easy-green/80 bg-easy-cream/60 rounded-2xl p-4 mb-6 space-y-1.5">
+                {camposFaltando.map((campo) => (
+                  <li key={campo} className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-easy-olive shrink-0" />
+                    {campo}
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={() => setCamposFaltando([])}
+                className="w-full bg-easy-green text-white font-semibold py-3 rounded-xl hover:bg-easy-olive transition-colors active:scale-95"
+              >
+                Entendi
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
+import ClientOnlyWidgets from "@/components/ClientOnlyWidgets";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import { OG_IMAGE, SITE_URL } from "@/lib/constants";
 
 const inter = Inter({
@@ -74,6 +76,11 @@ export default function RootLayout({
         {/* FOOTER GLOBAL */}
         <Footer />
 
+        {/* Botão flutuante do WhatsApp (LMS) — fica abaixo do Header (z-50) de propósito */}
+        <FloatingWhatsApp />
+
+        {/* Analytics só carrega depois do consentimento dado no banner abaixo */}
+        <ClientOnlyWidgets />
 
       </body>
     </html>

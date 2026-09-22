@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import GerenciarCookiesLink from "@/components/GerenciarCookiesLink";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -37,9 +38,14 @@ export default function Footer() {
         {/* Copyright e Assinatura */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-easy-cream/50">
           <p>© {currentYear} Easy Mall. Todos os direitos reservados.</p>
-          <p>
-            Uma realização <span className="font-semibold text-easy-cream/80">Torre Participações</span>
-          </p>
+          <div className="flex items-center gap-4">
+            <Link href="/termos-de-uso" className="hover:text-easy-cream transition-colors">Termos de Uso</Link>
+            <Link href="/politica-de-privacidade" className="hover:text-easy-cream transition-colors">Política de Privacidade</Link>
+            <GerenciarCookiesLink className="hover:text-easy-cream transition-colors" />
+            <p>
+              Uma realização <span className="font-semibold text-easy-cream/80">Torre Participações</span>
+            </p>
+          </div>
         </div>
 
       </div>
